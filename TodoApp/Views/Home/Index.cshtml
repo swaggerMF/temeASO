@@ -1,0 +1,80 @@
+﻿@model List<TodoApp.Models.TodoItem>
+@{
+    ViewData["Title"] = "To-Do";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="mb-4">To-Do List</h1>
+
+        <form asp-action="Add" method="post" class="d-flex gap-2 mb-4">
+            <input type="text" name="title" class="form-control" placeholder="Adaugă o sarcină..." required />
+            <button type="submit" class="btn btn-primary">Adaugă</button>
+        </form>
+
+        @if (!Model.Any())
+        {
+            <p class="text-muted">Nu ai task-uri încă.</p>
+        }
+        else
+        {
+            <ul class="list-group">
+                @foreach (var item in Model)
+                {
+                    <li class="list-group-item d-flex align-items-center justify-content-between gap-3">
+                        <form asp-action="Toggle" method="post" class="d-flex align-items-center gap-2 m-0">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="checkbox" onchange="this.form.submit()" @(item.IsDone ? "checked" : null) />
+                            <span id="text-@item.Id" class="@(item.IsDone ? "todo-done" : null)">@item.Title</span>
+                        </form>
+
+                        <form asp-action="Edit" method="post" id="edit-form-@item.Id" class="d-none align-items-center gap-2 m-0">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <input type="text" name="title" value="@item.Title" class="form-control form-control-sm" required />
+                            <button type="submit" class="btn btn-sm btn-success">Save</button>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit(@item.Id)">Cancel</button>
+                        </form>
+
+                        <div id="actions-@item.Id" class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="startEdit(@item.Id)">Edit</button>
+                            <form asp-action="Delete" method="post" class="m-0">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Șterge</button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+
+        <hr class="my-4" />
+        <h2 class="h5 mb-3">Recent Actions</h2>
+        <ul class="list-group">
+            @if (ViewBag.History is List<string> history && history.Any())
+            {
+                @foreach (var log in history)
+                {
+                    <li class="list-group-item text-muted small">@log</li>
+                }
+            }
+            else
+            {
+                <li class="list-group-item text-muted small">No actions yet.</li>
+            }
+        </ul>
+    </div>
+</div>
+
+<script>
+    function startEdit(id) {
+        document.getElementById("text-" + id).classList.add("d-none");
+        document.getElementById("actions-" + id).classList.add("d-none");
+        document.getElementById("edit-form-" + id).classList.remove("d-none");
+    }
+
+    function cancelEdit(id) {
+        document.getElementById("text-" + id).classList.remove("d-none");
+        document.getElementById("actions-" + id).classList.remove("d-none");
+        document.getElementById("edit-form-" + id).classList.add("d-none");
+    }
+</script>
